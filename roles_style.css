@@ -1,0 +1,111 @@
+ul.roles li.addRole {
+  list-style-type: none;
+  display: inline-block;
+  padding: .3rem;
+  margin: 1rem 0.3rem ;
+  margin-left: -1rem;
+  background: rgba(68, 102, 68, 0.1);
+  border: rgba(68, 102, 68, 0.3);
+  color: #464;
+  cursor: pointer;
+}
+ul.roles .deleteRole {
+  color: #644;
+  cursor: pointer;
+  border-radius: .3rem;
+  padding: .1rem .2rem;
+  transition: background .2s, color .2s;
+}
+ul.roles .deleteRole:hover {
+  background: #ff958d;
+  color: #000;
+}
+ul.performers {
+  ist-style-type: none;
+  display: inline;
+  margin-left: 0;
+  padding-left: 0;
+}
+ul.performers li {
+  display: inline-block;
+  padding: .1em .3rem;
+  margin: 0 .3rem;
+  border: rgba(85, 102, 119, 0.06) 1px solid;
+  border-radius: .3rem;
+  transition: background .2s;
+}
+ul.performers li:hover {
+  background: rgba(85, 102, 119, 0.1);
+}
+ul.performers li.add {
+  background: rgba(68, 102, 68, 0.1);
+  border: rgba(68, 102, 68, 0.3);
+  color: #464;
+  cursor: pointer;
+}
+ul.performers span.remove {
+  color: #644;
+  cursor: pointer;
+  border-radius: .3rem;
+  padding: .1rem .2rem;
+  transition: background .2s, color .2s;
+}
+ul.performers span.remove:hover {
+  background: #ff958d;
+  color: #000;
+}
+/*
+ul.roles li.addRole {
+  list-style-type: none;
+  display: inline-block;
+  padding: .3rem;
+  margin: 1rem 0.3rem ;
+  margin-left: -1rem;
+  background: rgba(68, 102, 68, 0.1);
+  border: rgba(68, 102, 68, 0.3);
+  color: #464;
+  cursor: pointer;
+}
+ul.roles .deleteRole {
+  color: #644;
+  cursor: pointer;
+  border-radius: .3rem;
+  padding: .1rem .2rem;
+  transition: background .2s, color .2s;
+}
+ul.roles .deleteRole:hover {
+  background: #ff958d;
+  color: #000;
+}
+ul.performers {
+  list-style-type: none;
+  display: inline-block;
+  margin-left: 0;
+  padding-left: 0;
+}
+ul.performers li {
+  display: inline-block;
+  padding: .1em .3rem;
+  margin: 0 .3rem;
+  background: rgba(85, 85, 221, 0.1);
+  border: rgba(85, 85, 221, 0.3);
+  border-radius: .3rem;
+}
+ul.performers li.add {
+  background: rgba(68, 102, 68, 0.1);
+  border: rgba(68, 102, 68, 0.3);
+  color: #464;
+  cursor: pointer;
+}
+ul.performers span.remove {
+  color: #644;
+  cursor: pointer;
+  border-radius: .3rem;
+  padding: .1rem .2rem;
+  transition: background .2s, color .2s;
+}
+ul.performers span.remove:hover {
+  background: #ff958d;
+  color: #000;
+}
+*/
