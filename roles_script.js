@@ -96,7 +96,13 @@ $(document).ready(function(){
 			sNewRole: "",
 			sNewRoleSing: "",
 			bRoleAddition: false,
-			bUpdating: false
+			bUpdating: false,
+			
+			bPersAdding: false,
+			sNewName: "",
+			sNewStat2: "",
+			sNewLink: "",
+			sNewDate: ""
     },
 		computed: {
 			aRolesFull: {
@@ -138,7 +144,7 @@ $(document).ready(function(){
 					method: 'GET',
 					success: function (data) {
 						let o = JSON.parse(data);
-						that.aRoles = o.aRoles.map(function(el){ el.newVisible = false; el.editVisible = false; el.newSelected = ""; el.persons = el.persons.split("|").map(function(pers, i){ return {id: pers, order: i}}); return el;});
+						that.aRoles = o.aRoles.map(function(el){ el.newVisible = false; el.editVisible = false; el.newSelected = ""; el.persons = el.persons.split("|").filter(el => el!="").map(function(pers, i){ return {id: pers, order: i}}); return el;});
 						that.aPersons = o.aPersons;
 						that.aPlays = o.aPlays;
 						this.bUpdating = false;
@@ -153,22 +159,30 @@ $(document).ready(function(){
 				let that = this;
 				let aParams = [];
 				this.bUpdating = true;
+			//	const url = script_url+'?stat='+stat + "&"+aParams.join("&");
+				const url = script_url;
+				// let params = {};
+				// params.stat = stat
+				// for(var key in oData) {
+					// params[key] = oData[key];
+				// }
+				let aData = ["stat="+stat];
 				for(var key in oData) {
-					aParams.push(key+"="+oData[key]);
+					aData.push(key+"="+oData[key]);
 				}
-				const url = script_url+'?stat='+stat + "&"+aParams.join("&");
 				console.log(url);
 				var promise = new Promise(function(resolve, reject) {
 					$.ajax({
 						url: url,
-						method: 'POST',
+						method: 'GET',
+						data: aData.join("&"),
 						success: function (data) {
-							this.bUpdating = false;
+							that.bUpdating = false;
 							resolve();
 						}.bind(this),
 						error: function (error) {
 							console.dir(error);
-							this.bUpdating = false;
+							that.bUpdating = false;
 							reject();
 						}.bind(this)
 					});
@@ -253,13 +267,17 @@ $(document).ready(function(){
 				/**/
 				e.target.style.opacity = 1;
 				if(this.oRoleDragEntered){
-					const aRoles = this.aRoles.filter(el=>el.role==this.oRoleDragEntered.role);
-					if(aRoles.length>0) {
+					const aRoleList = this.aRoles.filter(el=>el.role==this.oRoleDragEntered.role);
+					if(aRoleList.length>0) {
 						// sql
-						const sRoleId = aRoles[0].id;
-						const nRoleOrder = aRoles[0].order;
-						const aPers = aRoles[0].persons.sort((a, b) => a.order-b.order).map(el=>el.id);
-						this.sendData("update", {reason: "role_order", "id1": sRoleId, "no1": nRoleOrder, "id2": this.draggingRole.id, "no2": this.draggingRole.order});					
+						const sRoleId = aRoleList[0].id;
+						const nRoleOrder = aRoleList[0].order;
+						const aPers = aRoleList[0].persons.sort((a, b) => a.order-b.order).map(el=>el.id);
+						
+						const sPlayId = aRoleList[0].play;
+						const aRoles = this.aRoles.filter(el => el.play==sPlayId).sort((a,b)=>(a.order-b.order)).map((el, i) => ({id: el.id, no: i}));
+						
+						this.sendData("update", {reason: "role_order", data: JSON.stringify(aRoles)});					
 					}				
 				}
 				this.draggingRole = null;
@@ -279,9 +297,9 @@ $(document).ready(function(){
 			addRole: function(){
 				this.bRoleAddition = false;
 				if(this.sNewRole.length) {
-					nMaxOrder = 1+this.aRolesFull[this.aRolesFull.length-1].order;
-					nMaxId = 1+this.aRolesFull[this.aRolesFull.length-1].id;
-					/*/			
+					nMaxOrder = Number(this.aRolesFull[this.aRolesFull.length-1].order) + 1;
+					/*/	
+					nMaxId = 1+this.aRolesFull[this.aRolesFull.length-1].id;		
 					this.aRoles.push({
 						id: nMaxId,
 						order: nMaxOrder,
@@ -304,12 +322,12 @@ $(document).ready(function(){
 				oRole.newSelected = e.target.value;
 				
 				let nMaxOrder = oRole.persons.length? oRole.persons.sort((a,b)=> b.order-a.order)[0].order : "0";
-				if(oRole.persons.filter(el=>el.id==oRole.newSelected).length<1) {
+				if(oRole.persons.length == 0 || oRole.persons.filter(el=>el.id==oRole.newSelected).length<1) {
 					oRole.persons.push({
 						id: oRole.newSelected,
 						order: nMaxOrder+1
 					});
-					this.sendData("update", {reason: "pers_add", role_id: oRole.id, pers_id: oRole.newSelected});	
+					this.sendData("update", {reason: "pers_update", role_id: oRole.id, pers_id: oRole.persons.sort((a, b) => b.order-a.order).map(el => el.id).join("|")});	
 				}
 				oRole.newVisible = false;	
 			},
@@ -318,11 +336,13 @@ $(document).ready(function(){
 				let oRole = this.aRoles.filter(item => item.id == sRoleId)[0];
 				oRole.persons = oRole.persons.filter(item => item.id!=sPersId);
 				// sql
+				this.sendData("update", {reason: "pers_update", role_id: oRole.id, pers_id: oRole.persons.sort((a, b) => b.order-a.order).map(el => el.id).join("|")});	
 			},
 				
 			removeRole: function(sRoleId){
 				this.aRoles = this.aRoles.filter(el => el.id!=sRoleId);
 				// sql
+				this.sendData("update", {reason: "role_remove", role_id: sRoleId});	
 			},
 			
 			editRole: function(sRoleId){
@@ -336,12 +356,32 @@ $(document).ready(function(){
 				oRole.role = sRole;
 				oRole.role_sing = sRoleSing;
 				///sql
+				this.sendData("update", {reason: "role_update", role_id: oRole.id, role: oRole.role, role_sing: oRole.role_sing});	
 			},			
 			cancelRole: function(sRoleId){				
 				const oRoleFormatted = this.aRoles.filter(el => el.id==sRoleId)[0];
 				let oRole = this.aRoles.filter(el=>el.id==oRoleFormatted.id)[0];
 				oRole.editVisible = false;
-			}
+			},
+			
+			showNewPersonAdder: function(){
+				this.bPersAdding = true;
+				this.sNewName = "";
+				this.sNewStat2 = "";
+				this.sNewLink = "";
+				this.sNewDate = "";
+			},
+			hideNewPersonAdder: function(){
+				this.bPersAdding = false;
+				this.sNewName = "";
+				this.sNewStat2 = "";
+				this.sNewLink = "";
+				this.sNewDate = "";
+			},
+			addNewPerson: function(){
+				const oPersAdd = this.sendData("update", {reason: "person_add", name: this.sNewName, stat2: this.sNewStat2, link: this.sNewLink, date: this.sNewDate});
+				oPersAdd.finally(function(){this.loadData();}.bind(this));
+			},
 		},
   });
 });

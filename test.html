@@ -119,6 +119,17 @@
 			</span>
 		</li>
 	</ul>
+	<p>
+	<div v-if='bPersAdding'>
+		<input placeholder='Имя Фамилия' v-model='sNewName'/>
+		<input placeholder='статус 2' v-model='sNewStat2' type='number'/>
+		<input placeholder='ссылка' v-model='sNewLink'/>
+		<input type='date' v-model='sNewDate'/>
+		<button @click='addNewPerson'>Добавить</button>
+	</div>
+	<button v-if='!bPersAdding' @click='showNewPersonAdder'>Добавить актера</button>
+	<button v-if='bPersAdding' @click='hideNewPersonAdder'>Отменить</button>
+	</p>
 <pre>
 {{aRolesFull}}
 {{sSelectedPlay}}

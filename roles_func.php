@@ -5,6 +5,7 @@ require_once("../../db.php");
 require_once("../../funk/fff.php");
 $SiteURL='http://'.$_SERVER['HTTP_HOST'];
 /**/
+$ret=-1;
 function getPlays(){
 	$a=array();	
 	$query="SELECT play_id, play FROM `plays` ORDER BY play";    		
@@ -39,19 +40,19 @@ if($_GET['stat']=='get'){
 	echo '{'.getPlays().', '.getKollectiv().', '.getRoles().'}';
 	//echo "{}";
 }
-
-if($_POST['stat']=='updtae' && $_SESSION[stat]>6){
+//$ret= $_GET['stat']." ".$_SESSION['stat'];
+if($_GET['stat']=='update' && $_SESSION['stat']>6){
 	$ret=0;
 	
 	// update persons order in role
-	if($_POST['reason']=='pers_order'){
+	if($_GET['reason']=='pers_order'){
 		/*/
 		UPDATE table_name
 		SET column1 = value1, column2 = value2, ...
 		WHERE condition;
 		/**/
-		$role_id = $_POST['id'];
-		$koll_id = $_POST['data'];
+		$role_id = $_GET['id'];
+		$koll_id = $_GET['data'];
 		$query="UPDATE roles SET koll_id = '$koll_id' WHERE id='$role_id'";    		
 		$result = mysql_query($query) or die("i'm dead [".$query."]");
 		if($result){
@@ -60,18 +61,80 @@ if($_POST['stat']=='updtae' && $_SESSION[stat]>6){
 	}
 	
 	// update roles order
-	if($_POST['reason']=='role_order'){
-		$role_id1 = $_POST['id1'];
-		$no1 = $_POST['no1'];
-		$role_id2 = $_POST['id2'];
-		$no2 = $_POST['no2'];
-		$query="UPDATE roles SET no = '$no1' WHERE id='$role_id1'; UPDATE roles SET no = '$no2' WHERE id='$role_id2'";    		
+	if($_GET['reason']=='role_order'){
+		$data = $_GET['data'];
+		$array=json_decode($data);
+		
+		foreach ($array as &$value) {
+			$query="UPDATE roles SET no='$value->no' WHERE id='$value->id'";    		
+			$result = mysql_query($query) or die("i'm dead [".$query."]");
+			if($result){
+				$ret.=1;
+			}	
+		}
+		// массив $arr сейчас таков: array(2, 4, 6, 8)
+		unset($value); // разорвать ссылку на последний элемент	
+	
+	}
+	
+	// add role
+	if($_GET['reason']=='role'){
+		$ret=2;
+		$role = $_GET['role'];
+		$role_sing = $_GET['role_sing'];
+		$no = $_GET['no'];
+		$play_id = $_GET['play_id'];
+		$query="INSERT INTO roles (no, role, role_sing, play_id) VALUES ('$no', '$role', '$role_sing', '$play_id')";    		
 		$result = mysql_query($query) or die("i'm dead [".$query."]");
 		if($result){
 			$ret=1;
 		}	
 	}
+	// remove role
+	if($_GET['reason']=='role_remove'){
+		$role = $_GET['role_id'];
+		$query="DELETE FROM roles WHERE id='$role'";    		
+		$result = mysql_query($query) or die("i'm dead [".$query."]");
+		if($result){
+			$ret=1;
+		}	
+	}
+	
+	// update role
+	if($_GET['reason']=='role_update'){
+		$id = $_GET['role_id'];
+		$role = $_GET['role'];
+		$role_sing = $_GET['role_sing'];
+		$query="UPDATE roles SET role = '$role', role_sing = '$role_sing' WHERE id='$id'";    		
+		$result = mysql_query($query) or die("i'm dead [".$query."]");
+		if($result){
+			$ret=1;
+		}	
+	}
+	// add/remove rerson to role (update all persons in one role)
+	if($_GET['reason']=='pers_update'){
+		$role_id = $_GET['role_id'];
+		$pers_id = $_GET['pers_id'];
+		$query="UPDATE roles SET koll_id = '$pers_id' WHERE id='$role_id'";    		
+		$result = mysql_query($query) or die("i'm dead [".$query."]");
+		if($result){
+			$ret=1;
+		}	
+	}
+	
+	// add new person
+	if($_GET['reason']=='person_add'){
+		$ret=2;
+		$name = $_GET['name'];
+		$link = $_GET['link'];
+		$stat2 = $_GET['stat2'];
+		$date = $_GET['date'];
+		$query="INSERT INTO kollectiv (name, link, stat2, date) VALUES ('$name', '$link', '$stat2', '$date')";    		
+		$result = mysql_query($query) or die("i'm dead [".$query."]");
+		if($result){
+			$ret=1;
+		}	
+	}
+	echo $ret;
 }
-
-
 ?>

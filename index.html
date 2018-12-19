@@ -10,13 +10,15 @@
 		{{oPlay.name}}
 		</option>
 	</select>
+	<button @click='loadData'>Обновить</button>
+	<span v-show='bUpdating'>Обновление...</span>
 	<ul class='roles'>
 		<li
 			v-for='Item in aRolesFull'
 			:key='Item.id'
 			draggable='true'
 			v-on:dragstart='roleDragStart($event, Item,  Item.id)' 
-			v-on:dragend='roleDragEnd($event)' 
+			v-on:dragend='roleDragEnd($event, Item)' 
 			v-on:dragenter='roleDragEnter($event, Item,  Item.id)'
 			>
 			<span 
@@ -26,9 +28,9 @@
 				&#10005
 			</span>
 			<span @dblclick='editRole(Item.id)' v-if='!Item.editVisible'>{{Item.role}}</span>
-			<span v-if='Item.editVisible' v-on:keyup.13="cancelRole(Item.id)">
-				<input v-model='Item.role' v-on:keyup.13="cancelRole(Item.id)">
-				<input v-model='Item.role_sing' v-on:keyup.13="cancelRole(Item.id)">
+			<span v-if='Item.editVisible' v-on:keyup.13='cancelRole(Item.id)'>
+				<input v-model='Item.role' v-on:keyup.13='cancelRole(Item.id)'>
+				<input v-model='Item.role_sing' v-on:keyup.13='cancelRole(Item.id)'>
 				<span
 					@click='applyRole(Item.id, Item.role, Item.role_sing)'
 					>
@@ -73,7 +75,7 @@
 			</ul>					
 		</li>
 		
-		<li class='addRole' v-if="sSelectedPlay">
+		<li class='addRole' v-if='sSelectedPlay'>
 			<span v-if='bRoleAddition'>
 				<input v-model='sNewRole' placeholder='Роль'> 
 				<input v-model='sNewRoleSing' placeholder='Роль в единственном числе'> 
@@ -90,9 +92,22 @@
 			</span>
 		</li>
 	</ul>
+	<p>
+	<div v-if='bPersAdding'>
+		<input placeholder='Имя Фамилия' v-model='sNewName'/>
+		<input placeholder='статус 2' v-model='sNewStat2' type='number'/>
+		<input placeholder='ссылка' v-model='sNewLink'/>
+		<input type='date' v-model='sNewDate'/>
+		<div style='text-align: right'>
+			<button @click='addNewPerson'>Добавить</button>
+		</div>
+	</div>
+	<button v-if='!bPersAdding' @click='showNewPersonAdder'>Добавить актера</button>
+	<button v-if='bPersAdding' @click='hideNewPersonAdder'>Отменить</button>
+	</p>
 <pre>
 {{aRolesFull}}
 {{sSelectedPlay}}
 {{aRoles}}
 </pre>
-</div>";
+</div>
