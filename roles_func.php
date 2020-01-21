@@ -174,6 +174,15 @@ if($_GET['stat']=='update' && $_SESSION['stat']>6){
 			$ret=1;
 		}
 	}
+	if($_GET['reason']=='performer_edit'){
+		$link_id = $_GET['link_id'];
+		$date = $_GET['date'];
+		$query="UPDATE role_links SET date = '$date' WHERE id='$link_id'";    		
+		$result = mysql_query($query) or die("i'm dead [".$query."]");
+		if($result){
+			$ret=1;
+		}
+	}
 	
 	// add new person
 	if($_GET['reason']=='person_add'){

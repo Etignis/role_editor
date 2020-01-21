@@ -45,10 +45,15 @@
 					v-on:dragstart='persDragStart($event, Pers,  Item.id)' 
 					v-on:dragend='persDragEnd($event, Item)' 
 					v-on:dragenter='persDragEnter($event, Pers,  Item.id)'
+					
+					@dblclick='editPerformer(Pers.id, Item.id)'
 					>
-					{{Pers.name}} 
+					{{Pers.name}}
+					<input v-model="Pers.date" type="date" placeholder="Год" style='min-width: 5em' v-show="Pers.isEdit">
+					<span class='ok' @click="savePerformer(Pers)" v-show="Pers.isEdit">&#10003;</span>
 					<span class='remove'
-						@dblclick='removePerson(Pers.id, Item.id)'
+						@click='canselEditPerformer(Pers.isEdit)'
+						@dblclick='removePerson(Pers.id, Item.id, Pers.isEdit)'
 						>
 						&#10005
 					</span>
@@ -67,7 +72,7 @@
 						</option>
 					</select>
 					<input v-model="sTmpDate" type="date" placeholder="Год" style='min-width: 5em'>
-					<button class='selCur' @click="addPerformer($event, Item.id)">v</button>
+					<span class='ok' @click="addPerformer($event, Item.id)">&#10003;</span>
 				</li>
 				<li class='add'
 					@click='addPerson(Item.id)'

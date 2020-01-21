@@ -18,88 +18,88 @@ $(document).ready(function(){
     el: '#roles_comp',
     data: {
 			aRoles: [
-				{
-					id: 1,
-					role: "Role2",
-					play: 2,
-					persons: [
-						{
-							id: 4,
-							order: 1,
-							date: ""
-						}
-					],
-					order: 2,
-					newVisible: false,
-					newSelected: ""
-				},				
-				{
-					id: 23,
-					role: "Role1",
-					play: 2,
-					persons: [
-						{
-							id: 3,
-							order: 2,
-							date: ""
-						},
-						{
-							id: 2,
-							order: 1,
-							date: ""
-						}
-					],
-					order: 1,
-					newVisible: false,
-					newSelected: 5
-				},
-				{
-					id: 3,
-					role: "Role3",
-					play: 5,
-					persons:  [
-						{
-							id: 1,
-							order: 1,
-							date: ""
-						}
-					],
-					order: 3,
-					newVisible: false,
-					newSelected: ""
-				}
+				// {
+					// id: 1,
+					// role: "Role2",
+					// play: 2,
+					// persons: [
+						// {
+							// id: 4,
+							// order: 1,
+							// date: ""
+						// }
+					// ],
+					// order: 2,
+					// newVisible: false,
+					// newSelected: ""
+				// },				
+				// {
+					// id: 23,
+					// role: "Role1",
+					// play: 2,
+					// persons: [
+						// {
+							// id: 3,
+							// order: 2,
+							// date: ""
+						// },
+						// {
+							// id: 2,
+							// order: 1,
+							// date: ""
+						// }
+					// ],
+					// order: 1,
+					// newVisible: false,
+					// newSelected: 5
+				// },
+				// {
+					// id: 3,
+					// role: "Role3",
+					// play: 5,
+					// persons:  [
+						// {
+							// id: 1,
+							// order: 1,
+							// date: ""
+						// }
+					// ],
+					// order: 3,
+					// newVisible: false,
+					// newSelected: ""
+				// }
 			],
 			aPersons: [
-				{
-					name: "name1",
-					id: 1
-				},
-				{
-					name: "name3",
-					id: 3
-				},
-				{
-					name: "name4",
-					id: 4
-				},
-				{
-					name: "name2",
-					id: 2
-				},
-				{
-					name: "new name",
-					id: 5
-				}
+				// {
+					// name: "name1",
+					// id: 1
+				// },
+				// {
+					// name: "name3",
+					// id: 3
+				// },
+				// {
+					// name: "name4",
+					// id: 4
+				// },
+				// {
+					// name: "name2",
+					// id: 2
+				// },
+				// {
+					// name: "new name",
+					// id: 5
+				// }
 			],
 			aPlays: [
-				{
-					name: "Play1",
-					id: 2
-				},
-				{
-					name: "Play2",
-					id: 5
-				}
+				// {
+					// name: "Play1",
+					// id: 2
+				// },
+				// {
+					// name: "Play2",
+					// id: 5
+				// }
 			],
 			sSelectedPlay: "",
 			sNewRole: "",
@@ -114,11 +114,14 @@ $(document).ready(function(){
 			sNewDate: "",
 			nMaxYear: new Date().getFullYear()+1,
 			sTmpDate: "",
-			sTmpPerformer: ""
+			sTmpPerformer: "",
+			nTmpRoleEdit: "",
+			nTmpPerfEdit: ""
     },
 		computed: {
 			aRolesFull: {
-				get: function(){				
+				get: function(){	
+					let	that = this;			
 					let aRet = [];
 					this.aRoles.filter(el => el.play == this.sSelectedPlay).forEach(function(oRole){
 						let oItem = {};
@@ -131,6 +134,8 @@ $(document).ready(function(){
 								name: oPers.name,
 								id: pers.id,
 								order: pers.date,
+								linkId: pers.linkId,
+								isEdit: that.nTmpRoleEdit == oRole.id && that.nTmpPerfEdit == pers.id,
 								date: pers.date /*|| this.aPlays[this.sSelectedPlay].year*/
 							}:null;						
 						}.bind(this)).filter(el => el!=null);
@@ -164,13 +169,21 @@ $(document).ready(function(){
 							el.newVisible = false; 
 							el.editVisible = false; 
 							el.newSelected = ""; 
-							let aLinks = o.aRoleLinks.filter(link=>link.role == el.id).sort((a,b) => {if(a.order<b.order) return -1;if(a.order>b.order) return 1; return 0;});
+							let aLinks = o.aRoleLinks
+														.filter(link=>link.role == el.id)
+														.sort((a,b) => {
+															if(a.order<b.order) return -1;
+															if(a.order>b.order) return 1; 
+															return 0;
+														});
 							
 							el.persons = [];
 							
 							aLinks.forEach(function(oLink){
 								let oPerformer = o.aPersons.find(perf=>perf.id == oLink.person);
 								oPerformer.date = oLink.date;
+								oPerformer.isEdit = false;
+								oPerformer.linkId = oLink.id;
 								
 								el.persons.push(oPerformer);
 							});
@@ -418,18 +431,37 @@ $(document).ready(function(){
 			    
 			},
 				
-			removePerson: function(sPersId, sRoleId){
-				let oRole = this.aRoles.filter(item => item.id == sRoleId)[0];
-				oRole.persons = oRole.persons.filter(item => item.id!=sPersId);
-				// sql
-				// this.sendData("update", {reason: "pers_update", role_id: oRole.id, pers_id: oRole.persons.sort((a, b) => b.order-a.order).map(el => el.year?el.id+";"+el.year: el.id).join("|")});	
-				this.sendData("update", {
-					reason: "performer_remove", 
-					role_id: oRole.id, 
-					pers_id: sPersId
-				});	
+			removePerson: function(sPersId, sRoleId, bEdit){
+				if(!bEdit){
+					let oRole = this.aRoles.filter(item => item.id == sRoleId)[0];
+					oRole.persons = oRole.persons.filter(item => item.id!=sPersId);
+					// sql
+					// this.sendData("update", {reason: "pers_update", role_id: oRole.id, pers_id: oRole.persons.sort((a, b) => b.order-a.order).map(el => el.year?el.id+";"+el.year: el.id).join("|")});	
+					this.sendData("update", {
+						reason: "performer_remove", 
+						role_id: oRole.id, 
+						pers_id: sPersId
+					});	
+				}				
 			},
+			editPerformer: function(sPersId, sRoleId, sDate){
+				this.nTmpRoleEdit = sRoleId;
+				this.nTmpPerfEdit = sPersId;
+			},
+			savePerformer: function({linkId, date}){
+				this.sendData("update", {
+					reason: "performer_edit", 
+					link_id: linkId, 
+					date: date
+				});	
 				
+				this.nTmpRoleEdit = null;
+				this.nTmpPerfEdit = null;
+			},
+			canselEditPerformer: function(bEdit){
+				this.nTmpRoleEdit = null;
+				this.nTmpPerfEdit = null;
+			},
 			removeRole: function(sRoleId){
 				this.aRoles = this.aRoles.filter(el => el.id!=sRoleId);
 				// sql

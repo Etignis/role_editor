@@ -54,6 +54,17 @@ ul.performers span.remove:hover {
   background: #ff958d;
   color: #000;
 }
+ul.performers span.ok {
+  color: #464;
+  cursor: pointer;
+  border-radius: .3rem;
+  padding: .1rem .2rem;
+  transition: background .2s, color .2s;
+}
+ul.performers span.ok:hover {
+  background: #95ff8d;
+  color: #000;
+}
 /*
 ul.roles li.addRole {
   list-style-type: none;
