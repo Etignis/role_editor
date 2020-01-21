@@ -29,7 +29,7 @@ function getKollectiv(){
 function getRoles(){
 	$a=array();	
 	$query="SELECT id, role, role_sing, play_id, koll_id, no FROM `roles` ORDER BY play_id, no";    		
-	$result = mysql_query($query) or die("i'm dead");
+	$result = mysql_query($query) or die("i'm dead 0");
 	while($line=mysql_fetch_array($result)) {		
 		array_push ( $a, '{"id": "'.$line['id'].'", "role": "'.$line['role'].'", "role_sing": "'.$line['role_sing'].'", "play": "'.$line['play_id'].'", "order": "'.$line['no'].'", "persons": "'.$line['koll_id'].'"}' );
 	} 	
@@ -53,7 +53,7 @@ function getRolesData(){
 	ON 
 		roles.id = role_links.role 
 	ORDER BY roles.play_id, roles.no";    		
-	$result = mysql_query($query) or die("i'm dead");
+	$result = mysql_query($query) or die("i'm dead 1");
 	while($line=mysql_fetch_array($result)) {		
 		array_push ( $a, '{"id": "'.$line['role_id'].'", "role": "'.$line['role_name'].'", "role_sing": "'.$line['role_sing'].'", "play": "'.$line['play_id'].'", "order": "'.$line['no'].'", "person_id": "'.$line['person'].'", "date": "'.$line['date'].'"}' );
 	} 	
@@ -62,8 +62,8 @@ function getRolesData(){
 
 function getRoleLinks(){
 	$a=array();	
-	$query="SELECT id, role, person, date, no FROM `role_links`";    		
-	$result = mysql_query($query) or die("i'm dead");
+	$query="SELECT id, role, person, date FROM `role_links`";    		
+	$result = mysql_query($query) or die("i'm dead 2");
 	while($line=mysql_fetch_array($result)) {		
 		array_push ( $a, '{"id": "'.$line['id'].'", "role": "'.$line['role'].'", "person": "'.$line['person'].'", "date": "'.$line['date'].'"}' );
 	} 	
