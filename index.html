@@ -61,11 +61,13 @@
 						>
 						<option
 							v-for='oPers in aPersons'
-							v-bind:value='oPers.id'																			
+							v-bind:value='oPers.id'
 						>
 						{{oPers.name}}
 						</option>
 					</select>
+					<input v-model="sTmpDate" type="date" placeholder="Год" style='min-width: 5em'>
+					<button class='selCur' @click="addPerformer($event, Item.id)">v</button>
 				</li>
 				<li class='add'
 					@click='addPerson(Item.id)'
@@ -95,19 +97,31 @@
 	<p>
 	<div v-if='bPersAdding'>
 		<input placeholder='Имя Фамилия' v-model='sNewName'/>
-		<input placeholder='статус 2' v-model='sNewStat2' type='number'/>
+		<input placeholder='статус 2 (2/3)' v-model='sNewStat2' type='number'/>
 		<input placeholder='ссылка' v-model='sNewLink'/>
 		<input type='date' v-model='sNewDate'/>
 		<div style='text-align: right'>
 			<button @click='addNewPerson'>Добавить</button>
 		</div>
 	</div>
-	<button v-if='!bPersAdding' @click='showNewPersonAdder'>Добавить актера</button>
-	<button v-if='bPersAdding' @click='hideNewPersonAdder'>Отменить</button>
+	<div>
+		<button v-if='!bPersAdding' @click='showNewPersonAdder'>Добавить актера</button>
+		<button v-if='bPersAdding' @click='hideNewPersonAdder'>Отменить</button>
+	</div>
 	</p>
+	
+<details>
+<summary>Данные</summary>
 <pre>
-{{aRolesFull}}
+Выбранный спектакль:
 {{sSelectedPlay}}
+----
+aRolesFull:
+{{aRolesFull}}
+----
+aRoles:
 {{aRoles}}
 </pre>
+</details>
+
 </div>

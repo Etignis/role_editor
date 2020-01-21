@@ -8,10 +8,10 @@ $SiteURL='http://'.$_SERVER['HTTP_HOST'];
 $ret=-1;
 function getPlays(){
 	$a=array();	
-	$query="SELECT play_id, play FROM `plays` ORDER BY play";    		
+	$query="SELECT play_id, play, date FROM `plays` ORDER BY play";    		
 	$result = mysql_query($query) or die("i'm dead");
 	while($line=mysql_fetch_array($result)) {		
-		array_push ( $a, '{"id": "'.$line['play_id'].'", "name": "'.$line['play'].'"}' );
+		array_push ( $a, '{"id": "'.$line['play_id'].'", "name": "'.$line['play'].'", "date": "'.$line['date'].'"}' );
 	} 	
 	return '"aPlays": ['.implode(",", $a)."]";
 }
@@ -154,6 +154,25 @@ if($_GET['stat']=='update' && $_SESSION['stat']>6){
 		if($result){
 			$ret=1;
 		}	
+	}
+	if($_GET['reason']=='performer_add'){
+		$role_id = $_GET['role_id'];
+		$pers_id = $_GET['pers_id'];
+		$date = $_GET['date'];
+		$query="INSERT INTO role_links (role, person, date) VALUES ('$role_id', '$pers_id', '$date')";    		
+		$result = mysql_query($query) or die("i'm dead [".$query."]");
+		if($result){
+			$ret=1;
+		}
+	}
+	if($_GET['reason']=='performer_remove'){
+		$role_id = $_GET['role_id'];
+		$pers_id = $_GET['pers_id'];
+		$query="DELETE FROM role_links WHERE role='$role_id' AND person='$pers_id'";    		
+		$result = mysql_query($query) or die("i'm dead [".$query."]");
+		if($result){
+			$ret=1;
+		}
 	}
 	
 	// add new person

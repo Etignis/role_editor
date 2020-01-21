@@ -25,7 +25,8 @@ $(document).ready(function(){
 					persons: [
 						{
 							id: 4,
-							order: 1
+							order: 1,
+							date: ""
 						}
 					],
 					order: 2,
@@ -39,11 +40,13 @@ $(document).ready(function(){
 					persons: [
 						{
 							id: 3,
-							order: 2
+							order: 2,
+							date: ""
 						},
 						{
 							id: 2,
-							order: 1
+							order: 1,
+							date: ""
 						}
 					],
 					order: 1,
@@ -57,7 +60,8 @@ $(document).ready(function(){
 					persons:  [
 						{
 							id: 1,
-							order: 1
+							order: 1,
+							date: ""
 						}
 					],
 					order: 3,
@@ -109,7 +113,8 @@ $(document).ready(function(){
 			sNewLink: "",
 			sNewDate: "",
 			nMaxYear: new Date().getFullYear()+1,
-			sTmpYear: ""
+			sTmpDate: "",
+			sTmpPerformer: ""
     },
 		computed: {
 			aRolesFull: {
@@ -125,11 +130,11 @@ $(document).ready(function(){
 							return oPers?{
 								name: oPers.name,
 								id: pers.id,
-								order: pers.order,
-								year: pers.year || this.aPlays[this.sSelectedPlay].year
+								order: pers.date,
+								date: pers.date /*|| this.aPlays[this.sSelectedPlay].year*/
 							}:null;						
 						}.bind(this)).filter(el => el!=null);
-						oItem.persons= oItem.persons.sort((a,b) => a.order-b.order);
+						oItem.persons= oItem.persons.sort((a,b) => {if(a.order<b.order) return -1;if(a.order>b.order) return 1; return 0;});
 						
 						aRet.push(oItem);
 					}.bind(this));
@@ -140,7 +145,7 @@ $(document).ready(function(){
 				}
 			},
 			sSelectePlayYear: function(){
-				return this.aPlays[this.sSelectedPlay].year || "";
+				return this.aPlays.find(el => el.id == this.sSelectedPlay).date || "";
 			}
 		},
 		mounted: function() {
@@ -159,9 +164,30 @@ $(document).ready(function(){
 							el.newVisible = false; 
 							el.editVisible = false; 
 							el.newSelected = ""; 
+							let aLinks = o.aRoleLinks.filter(link=>link.role == el.id).sort((a,b) => {if(a.order<b.order) return -1;if(a.order>b.order) return 1; return 0;});
+							
+							el.persons = [];
+							
+							aLinks.forEach(function(oLink){
+								let oPerformer = o.aPersons.find(perf=>perf.id == oLink.person);
+								oPerformer.date = oLink.date;
+								
+								el.persons.push(oPerformer);
+							});
+							
+							
+							/*/
 							el.persons = el.persons.split("|")
 															.filter(el => el!="")
-															.map(function(pers, i){ let aData = pers.split(";"); return {id: aData[0], year: aData[1] || "", order: i}}); 
+															.map(function(pers, i){ 
+																let aData = pers.split(";"); 
+																return {
+																	id: aData[0], 
+																	year: aData[1] || "", 
+																	order: i
+																}
+															}); 
+															/**/
 							return el;
 						});
 						that.aPersons = [{
@@ -169,7 +195,7 @@ $(document).ready(function(){
 							id: 0
 						}].concat(o.aPersons);
 						that.aPlays = o.aPlays;
-						that.aPlays.forEach(function(oPlay){oPlay.year = oPlay.date? oPlay.date.split("-")[0]: ""});
+						//that.aPlays.forEach(function(oPlay){oPlay.year = oPlay.date? oPlay.date.split("-")[0]: ""});
 						this.bUpdating = false;
 					}.bind(this),
 					error: function (error) {
@@ -313,7 +339,7 @@ $(document).ready(function(){
 					oRole.newVisible = true;
 				}
 				
-				this.sTmpYear = this.sSelectePlayYear;
+				this.sTmpDate = this.sSelectePlayYear;
 			},
 			showAddRole: function(){
 				this.bRoleAddition = true;
@@ -342,6 +368,9 @@ $(document).ready(function(){
 			},
 				
 			selectNewPerson: function(e, roleId){
+				this.sTmpPerformer = e.target.value; // id
+				
+				/*/
 				let oRole = this.aRoles.filter(item => item.id == roleId)[0];
 				oRole.newSelected = e.target.value;
 				
@@ -350,12 +379,41 @@ $(document).ready(function(){
 					oRole.persons.push({
 						id: oRole.newSelected,
 						order: nMaxOrder+1,
-						year: this.sTmpYear
+						year: this.sTmpDate
 					});
 					this.sendData("update", {reason: "pers_update", role_id: oRole.id, pers_id: oRole.persons.sort((a, b) => a.order-b.order).map(el => el.year?el.id+";"+el.year: el.id).join("|")});	
 				}
 				oRole.newVisible = false;	
+				/**/
 			},
+			addPerformer :function(e, roleId){
+				if(!this.sTmpPerformer) {
+					alert("Не выбран исполнитель!");
+					return;
+				}
+				if(!this.sTmpDate) {
+					alert("Не выбрана дата!");
+					return;
+				}
+				let oRole = this.aRoles.filter(item => item.id == roleId)[0];
+				
+				oRole.persons.push({
+						id: this.sTmpPerformer,
+						date: this.sTmpDate
+					});
+					
+			  this.sendData("update", {
+					reason: "performer_add", 
+					role_id: oRole.id, 
+					pers_id: this.sTmpPerformer,
+					date: this.sTmpDate
+				});	
+				
+				this.sTmpPerformer = "";
+				this.sTmpDate = ""
+				oRole.newVisible = false;
+			},
+			
 			selectCurPers: function(e, roleId){
 			    
 			},
@@ -364,7 +422,12 @@ $(document).ready(function(){
 				let oRole = this.aRoles.filter(item => item.id == sRoleId)[0];
 				oRole.persons = oRole.persons.filter(item => item.id!=sPersId);
 				// sql
-				this.sendData("update", {reason: "pers_update", role_id: oRole.id, pers_id: oRole.persons.sort((a, b) => b.order-a.order).map(el => el.year?el.id+";"+el.year: el.id).join("|")});	
+				// this.sendData("update", {reason: "pers_update", role_id: oRole.id, pers_id: oRole.persons.sort((a, b) => b.order-a.order).map(el => el.year?el.id+";"+el.year: el.id).join("|")});	
+				this.sendData("update", {
+					reason: "performer_remove", 
+					role_id: oRole.id, 
+					pers_id: sPersId
+				});	
 			},
 				
 			removeRole: function(sRoleId){
