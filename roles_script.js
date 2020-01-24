@@ -336,9 +336,16 @@ $(document).ready(function(){
 						const aPers = aRoleList[0].persons.sort((a, b) => a.order-b.order).map(el=>el.id);
 						
 						const sPlayId = aRoleList[0].play;
-						const aRoles = this.aRoles.filter(el => el.play==sPlayId).sort((a,b)=>(a.order-b.order)).map((el, i) => ({id: el.year?el.id+";"+el.year: el.id, no: i}));
+						//const aRoles = this.aRoles.filter(el => el.play==sPlayId).sort((a,b)=>(a.order-b.order)).map((el, i) => ({id: el.year?el.id+";"+el.year: el.id, no: i}));
+						const aRoles = this.aRolesFull
+														.sort((a,b)=>(a.order-b.order))
+														.map((el, i) => ({
+															id: el.year?el.id+";"+el.year: el.id, 
+															no: i
+														}));
 						
-						this.sendData("update", {reason: "role_order", data: JSON.stringify(aRoles)});					
+						//this.sendData("update", {reason: "roles_order", data: JSON.stringify(aRoles)});	
+						this.sendData("update", {reason: "roles_order", data: aRoles.map(el=>el.id+"_"+el.no).join("|")});					
 					}				
 				}
 				this.draggingRole = null;

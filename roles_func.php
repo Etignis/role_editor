@@ -95,20 +95,29 @@ if($_GET['stat']=='update' && $_SESSION['stat']>6){
 	}
 	
 	// update roles order
-	if($_GET['reason']=='role_order'){
+	if($_GET['reason']=='roles_order'){
+		$ret=1;
+		/**/
 		$data = $_GET['data'];
-		$array=json_decode($data);
 		
+		$array=explode("|", $data);
+		/**/
 		foreach ($array as &$value) {
-			$query="UPDATE roles SET no='$value->no' WHERE id='$value->id'";    		
-			$result = mysql_query($query) or die("i'm dead [".$query."]");
+			$tmp = explode("_", $value);
+			$id = $tmp[0];
+			$no = $tmp[1];
+			$query="UPDATE roles SET no='$no' WHERE id='$id'";    		
+			$result = mysql_query($query)/* or die("i'm dead [".$query."]")*/;
 			if($result){
 				$ret.=1;
-			}	
+			}	else {
+				$ret.="error on ".$query;
+			}
 		}
 		// массив $arr сейчас таков: array(2, 4, 6, 8)
 		unset($value); // разорвать ссылку на последний элемент	
-	
+	/**/
+	//$ret=$array;
 	}
 	
 	// add role
