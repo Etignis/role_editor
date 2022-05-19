@@ -135,6 +135,40 @@ function getRoleLinks(){
 	//return '"aRoleLinks": ['.implode(",", $a)."]";
 	return $a;
 }
+
+function getRolesData(){
+	$a=array();	
+	$query="SELECT 
+		roles.id AS role_id, 
+		roles.role AS role_name, 
+		role_sing, 
+		play_id, 
+		no, 
+		person, 
+		date 
+	FROM 
+		`roles` 
+	LEFT JOIN 
+		role_links 
+	ON 
+		roles.id = role_links.role 
+	ORDER BY roles.play_id, roles.no";    		
+	$result = mysql_query($query) or die("i'm dead 1");
+	while($line=mysql_fetch_array($result)) {		
+		array_push ( $a, '{"id": "'.$line['role_id'].'", "role": "'.$line['role_name'].'", "role_sing": "'.$line['role_sing'].'", "play": "'.$line['play_id'].'", "order": "'.$line['no'].'", "person_id": "'.$line['person'].'", "date": "'.$line['date'].'"}' );
+	} 	
+	return '"aRolesData": ['.implode(",", $a)."]";
+}
+
+function getRoleLinks(){
+	$a=array();	
+	$query="SELECT id, role, person, date FROM `role_links`";    		
+	$result = mysql_query($query) or die("i'm dead 2");
+	while($line=mysql_fetch_array($result)) {		
+		array_push ( $a, '{"id": "'.$line['id'].'", "role": "'.$line['role'].'", "person": "'.$line['person'].'", "date": "'.$line['date'].'"}' );
+	} 	
+	return '"aRoleLinks": ['.implode(",", $a)."]";
+}
 /**/
 if($_GET['state']=='get'){
 	//echo '{'.getPlays().', '.getKollectiv().', '.getRoles().', '.getRolesData().', '.getRoleLinks().'}';

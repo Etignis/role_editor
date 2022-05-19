@@ -520,6 +520,9 @@ $(document).ready(function(){
 			selectCurPers: function(e, roleId){
 			    
 			},
+			selectCurPers: function(e, roleId){
+			    
+			},
 				
 			removePerson: function(sPersId, sRoleId, bEdit){
 				if(!bEdit){
