@@ -66,6 +66,148 @@ ul.performers {
 			color: #000;
 		}
 	}
+	span.ok {
+		color: #464;
+		cursor: pointer;
+		border-radius: .3rem;
+		padding: .1rem .2rem;
+		transition: background .2s, color .2s;
+		
+		&:hover {
+			background: #95ff8d;
+			color: #000;
+		}
+	}
+}
+
+#kollektive_list{
+	max-height: 80vh; 
+	overflow: auto;
+	
+	li{
+		cursor: pointer;
+		
+		&.selected{
+			background: var(--back-color-bright);
+		}
+	}
+}
+
+#QR_persons_list{
+	//background: #fff;
+	font-family: arial, verdana, sans-serif;
+	
+	.page{
+		padding: 0;
+		overflow: auto;
+	}
+	.page_wrapper{
+		padding: 0;
+		overflow: auto;
+	}
+	
+	h3{
+		margin: 0;
+    padding: 0;
+		padding-bottom: 1rem;
+		color: silver;
+	}
+	.container{
+		// display: flex;
+    // flex-wrap: wrap;
+		// justify-content: space-evenly;
+		float: none;
+		overflow: visible;
+		page-break-after: always;
+	}
+	.item{
+		display: block;
+		float: left;
+		padding: 1rem;
+		margin: 1rem;
+		
+    text-align: center;
+    page-break-after: always;
+		 break-inside: avoid;
+    page-break-inside: avoid;
+		
+		background: #ffffff99;
+		
+	}
+	.content{
+    //display: flex;
+		width:8cm;
+		//height: 4cm;
+		//background: silver;
+		overflow: auto;
+	}
+	.side{
+		//flex-grow: 0;
+    //flex-shrink: 1;
+		float: left;
+		width: 35%;
+		padding-right: .5rem;
+	}
+	.qr_place{
+		//flex-basis: 5cm;
+    //flex-grow: 1;
+    //flex-shrink: 0;
+		float: right;
+		width:60%
+	}
+	
+	img {
+    //page-break-before: auto; /* 'always,' 'avoid,' 'left,' 'inherit,' or 'right' */
+    //page-break-after: always; /* 'always,' 'avoid,' 'left,' 'inherit,' or 'right' */
+    //page-break-inside: avoid; /* or 'auto' */
+		width: 100%;;
+	}
+	
+	.dk_code{
+		font-size: 90%;
+		overflow-wrap: anywhere;
+	}
+	.name{
+		font-weight: bold;
+		min-height: 3em;
+		overflow-wrap: anywhere;
+		//display: flex;
+    //justify-content: center;
+    //align-items: flex-end;
+	}
+}
+
+@media print {
+	html,
+	body{
+		margin: 0;
+		padding: 0;
+	}
+	#QR_persons_list{
+		background: white;
+		.page{			
+			padding: 1cm 0 0 1cm;
+			width:	25cm;
+			height: 16cm;
+			break-inside: avoid;
+			page-break-inside: avoid;
+			overflow: visible;
+			//background: red;
+		}
+		.item {
+			transform: scale(1, 1);
+			margin: 1cm;
+			/*&:nth-child(odd) {
+				padding-right: 3rem;
+			}
+			&:nth-child(4n+1){
+				padding-bottom: 3rem;
+			}
+			&:nth-child(4n+2) {
+				padding-bottom: 3rem;
+			}*/
+		}
+	}
 }
 
 /*

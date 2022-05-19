@@ -54,6 +54,116 @@ ul.performers span.remove:hover {
   background: #ff958d;
   color: #000;
 }
+ul.performers span.ok {
+  color: #464;
+  cursor: pointer;
+  border-radius: .3rem;
+  padding: .1rem .2rem;
+  transition: background .2s, color .2s;
+}
+ul.performers span.ok:hover {
+  background: #95ff8d;
+  color: #000;
+}
+#kollektive_list {
+  max-height: 80vh;
+  overflow: auto;
+}
+#kollektive_list li {
+  cursor: pointer;
+}
+#kollektive_list li.selected {
+  background: var(--back-color-bright);
+}
+#QR_persons_list {
+  font-family: arial, verdana, sans-serif;
+}
+#QR_persons_list .page {
+  padding: 0;
+  overflow: auto;
+}
+#QR_persons_list .page_wrapper {
+  padding: 0;
+  overflow: auto;
+}
+#QR_persons_list h3 {
+  margin: 0;
+  padding: 0;
+  padding-bottom: 1rem;
+  color: silver;
+}
+#QR_persons_list .container {
+  float: none;
+  overflow: visible;
+  page-break-after: always;
+}
+#QR_persons_list .item {
+  display: block;
+  float: left;
+  padding: 1rem;
+  margin: 1rem;
+  text-align: center;
+  page-break-after: always;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  background: #ffffff99;
+}
+#QR_persons_list .content {
+  width: 8cm;
+  overflow: auto;
+}
+#QR_persons_list .side {
+  float: left;
+  width: 35%;
+  padding-right: .5rem;
+}
+#QR_persons_list .qr_place {
+  float: right;
+  width: 60%;
+}
+#QR_persons_list img {
+  width: 100%;
+}
+#QR_persons_list .dk_code {
+  font-size: 90%;
+  overflow-wrap: anywhere;
+}
+#QR_persons_list .name {
+  font-weight: bold;
+  min-height: 3em;
+  overflow-wrap: anywhere;
+}
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  #QR_persons_list {
+    background: white;
+  }
+  #QR_persons_list .page {
+    padding: 1cm 0 0 1cm;
+    width: 25cm;
+    height: 16cm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    overflow: visible;
+  }
+  #QR_persons_list .item {
+    transform: scale(1, 1);
+    margin: 1cm;
+    /*&:nth-child(odd) {
+				padding-right: 3rem;
+			}
+			&:nth-child(4n+1){
+				padding-bottom: 3rem;
+			}
+			&:nth-child(4n+2) {
+				padding-bottom: 3rem;
+			}*/
+  }
+}
 /*
 ul.roles li.addRole {
   list-style-type: none;

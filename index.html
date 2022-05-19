@@ -12,6 +12,20 @@
 	</select>
 	<button @click='loadData'>Обновить</button>
 	<span v-show='bUpdating'>Обновление...</span>
+	<p v-show="!!sSelectedPlay">
+		<span>На странице спектакля/проекта:</span><br>
+		<label>
+		<input type="radio" value="1" v-bind:checked="nSelectedPalyRoleMode==1" @change="onRolesTypeChanged(1)" v-bind:bPlayRolesType="1">
+    Показывать действующие лица и исполнителей (стандартный вариант)</label>
+    <br>
+		<label>
+    <input type="radio" value="0" v-bind:checked="nSelectedPalyRoleMode==2" @change="onRolesTypeChanged(2)" v-bind:bPlayRolesType="2">
+    Показывать только список исполнителей</label>
+    <br>
+		<label>
+    <input type="radio" value="0" v-bind:checked="nSelectedPalyRoleMode==0" @change="onRolesTypeChanged(0)" v-bind:bPlayRolesType="0">
+    Скрыть </label>
+	</p>
 	<ul class='roles'>
 		<li
 			v-for='Item in aRolesFull'
@@ -45,10 +59,15 @@
 					v-on:dragstart='persDragStart($event, Pers,  Item.id)' 
 					v-on:dragend='persDragEnd($event, Item)' 
 					v-on:dragenter='persDragEnter($event, Pers,  Item.id)'
+					
+					@dblclick='editPerformer(Pers.id, Item.id)'
 					>
-					{{Pers.name}} 
+					{{Pers.name}}
+					<input v-model="Pers.date" type="date" placeholder="Год" style='min-width: 5em' v-show="Pers.isEdit">
+					<span class='ok' @click="savePerformer(Pers)" v-show="Pers.isEdit">&#10003;</span>
 					<span class='remove'
-						@dblclick='removePerson(Pers.id, Item.id)'
+						@click='canselEditPerformer(Pers.isEdit)'
+						@dblclick='removePerson(Pers.id, Item.id, Pers.isEdit)'
 						>
 						&#10005
 					</span>
@@ -61,11 +80,13 @@
 						>
 						<option
 							v-for='oPers in aPersons'
-							v-bind:value='oPers.id'																			
+							v-bind:value='oPers.id'
 						>
 						{{oPers.name}}
 						</option>
 					</select>
+					<input v-model="sTmpDate" type="date" placeholder="Год" style='min-width: 5em'>
+					<span class='ok' @click="addPerformer($event, Item.id)">&#10003;</span>
 				</li>
 				<li class='add'
 					@click='addPerson(Item.id)'
@@ -77,13 +98,20 @@
 		
 		<li class='addRole' v-if='sSelectedPlay'>
 			<span v-if='bRoleAddition'>
-				<input v-model='sNewRole' placeholder='Роль'> 
-				<input v-model='sNewRoleSing' placeholder='Роль в единственном числе'> 
-				<span
+				<label><input type='checkbox' v-model="bNewRoleSpecial"> Особый проект</label> <small>Когда не вписывается в понятие ролей</small>
+				<div v-show="bNewRoleSpecial">
+					<input v-model='sNewRole' placeholder='Название номера, роли или оставить пустым' type='text'> 
+					<input v-model='sNewRoleSing' placeholder='Роль в единственном числе' type='text'> 
+				</div>
+				<div v-show="!bNewRoleSpecial">
+					<input v-model='sNewRole' placeholder='Роль'> 
+					<input v-model='sNewRoleSing' placeholder='Роль в единственном числе'> 
+				</div>
+				<button 
 					@click='addRole'
 					>
-						&#10003 
-					</span>
+						&#10003 Добавить
+					</button>
 			</span>
 			<span  
 				v-if='!bRoleAddition' 
@@ -92,22 +120,261 @@
 			</span>
 		</li>
 	</ul>
-	<p>
-	<div v-if='bPersAdding'>
-		<input placeholder='Имя Фамилия' v-model='sNewName'/>
-		<input placeholder='статус 2' v-model='sNewStat2' type='number'/>
-		<input placeholder='ссылка' v-model='sNewLink'/>
-		<input type='date' v-model='sNewDate'/>
-		<div style='text-align: right'>
-			<button @click='addNewPerson'>Добавить</button>
+	
+	<hr>
+	
+	<details>
+		<summary>Коллектив</summary>
+		<div>
+			<div v-if='bPersAdding'>
+				<input placeholder='Имя Фамилия' v-model='sNewName'/>
+				<input placeholder='ссылка' v-model='sNewLink'/>
+				<!-- <input placeholder='статус 2 (2/3)' v-model='sNewStat2' type='number'/> -->
+				<select v-model="sNewStat2">
+					<option disabled value="">Выберите один из вариантов</option>
+					<option value="2">Основной состав</option>
+					<option value="6">Средняя группа</option>
+					<option value="5">Младшая группа</option>
+					<option value="3">Уже не участвует</option>
+					<option value="4">Не актер</option>
+				</select>
+				<input type='date' v-model='sNewDate'/>
+				<input type='text' v-model='sNewQR' placeholder="Код с бэйджа dk.mos.reg"/>
+				
+				<div style='display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: var(--padding)'>
+					<button v-if='bPersAdding' @click='hideNewPersonAdder' class='reject'>Отменить</button>
+					<button @click='addNewPerson'>Добавить</button>
+				</div>
+			</div>
+			<div>
+				<button v-if='!bPersAdding' @click='showNewPersonAdder'>Добавить актера</button>
+			</div>
+			
+			<br>
+			
+			<div>
+				<div>
+					<label><input type='checkbox' v-model="pers_editor.show_all">Показать всех</label>
+				</div>
+				<div v-show='!pers_editor.show_all'>
+					<label><input type='radio' v-model="pers_editor.selected_group" value='5'> Младшая группа</label>
+					<label><input type='radio' v-model="pers_editor.selected_group" value='6'> Средняя группа</label>
+					<label><input type='radio' v-model="pers_editor.selected_group" value='2'> Старшая группа </label>
+					<label><input type='radio' v-model="pers_editor.selected_group" value='4'> Не актер </label>
+				</div>
+				<div v-show='!pers_editor.show_all'>
+					<label><input type='radio' v-model="pers_editor.selected_show" value='1'> Основной состав </label>
+					<label><input type='radio' v-model="pers_editor.selected_show" value='2'> Играли с нами </label>
+					<label><input type='radio' v-model="pers_editor.selected_show" value='0'> Не отображать </label>
+				</div>
+				
+				<div v-show='pers_editor.info.name'>
+					<input placeholder='Имя Фамилия' v-model='pers_editor.info.name'/>
+					<input placeholder='ссылка' v-model='pers_editor.info.link'/>
+					<!-- <input placeholder='статус 2 (2/3)' v-model='sNewStat2' type='number'/> -->
+					<input placeholder='Актер/Художник/...' v-model='pers_editor.info.stat'/>
+					<select v-model="pers_editor.info.stat2">
+						<option disabled value="">Выберите один из вариантов</option>
+						<option value="2">Старшая группа</option>
+						<option value="6">Средняя группа</option>
+						<option value="5">Младшая группа</option>
+						<option value="3">Уже не участвует</option>
+						<option value="4">Не актер</option>
+					</select>
+					<input type='date' v-model='pers_editor.info.date'/>
+					<input type='text' v-model='pers_editor.info.dk_code' placeholder="Код с бэйджа dk.mos.reg"/>
+					<select v-model="pers_editor.info.show_in_koll">
+						<option disabled value="">Выберите один из вариантов</option>
+						<option value="0">Не показывать</option>
+						<option value="1">Основной состав</option>
+						<option value="2">Играли с нами</option>
+					</select>
+					<button @click='save_edited_person'>Сохранить</button>
+				</div>
+				
+				<div>
+					<label><input type='checkbox' v-model="pers_editor.show_table">Показать таблицей</label>
+				</div>
+				<ul id='kollektive_list' v-show="!pers_editor.show_table">
+					<li v-for='person in aSelectegGroupPersons'
+						:key="person.id"
+
+						@click='edit_person(person)'						
+					>
+						{{person.name}}
+					</li>
+				</ul>
+				
+				<div v-show="pers_editor.show_table" style='max-height: 80vh; overflow: auto'>
+					<table>
+						<tr>
+							<th>Имя</th>
+							<th style='background: var(--back-color-bright)'>мл</th>
+							<th style='background: var(--back-color-bright)'>ср</th>
+							<th style='background: var(--back-color-bright)'>ст</th>
+							<th style='background: var(--back-color-lighter)'>скр</th>
+							<th style='background: var(--back-color-lighter)'>пкз</th>
+							<th style='background: var(--back-color-lighter)'>бывш</th>
+							<th>стат</th>
+							<th>код</th>
+						</tr>
+						
+						<tr v-for="person in aSelectegGroupPersons"
+							:key="person.id"
+							
+						>
+							<td>{{person.name}}</td>
+							<td style='background: var(--back-color-bright)'><input type='radio' v-model="person.stat2" value="5" @click='edit_person(person, {stat2: 5})'></td>
+							<td style='background: var(--back-color-bright)'><input type='radio' v-model="person.stat2" value="6" @click='edit_person(person, {stat2: 6})'></td>
+							<td style='background: var(--back-color-bright)'><input type='radio' v-model="person.stat2" value="2" @click='edit_person(person, {stat2: 2})'></td>
+							<td style='background: var(--back-color-lighter)'><input type='radio' v-model="person.show_in_koll" value="0" @click='edit_person(person, {show_in_koll: 0})'></td>
+							<td style='background: var(--back-color-lighter)'><input type='radio' v-model="person.show_in_koll" value="1" @click='edit_person(person, {show_in_koll: 1})'></td>
+							<td style='background: var(--back-color-lighter)'><input type='radio' v-model="person.show_in_koll" value="2" @click='edit_person(person, {show_in_koll: 2})'></td>						
+							<td><input placeholder='Актер/Художник/...' v-model='person.stat' style='width:5em'/></td>
+							<td><input type='text' v-model='person.dk_code' placeholder="Код с бэйджа dk.mos.reg"/></td>
+						</tr>
+					</table>
+				</div>
+			</div>
 		</div>
-	</div>
-	<button v-if='!bPersAdding' @click='showNewPersonAdder'>Добавить актера</button>
-	<button v-if='bPersAdding' @click='hideNewPersonAdder'>Отменить</button>
-	</p>
+	</details>
+	
+	<br>
+	
+	
+	<details>
+		<summary>QR коды ДК</summary>
+		<div>
+			<button @click="generate_QRs">Сгенерировать QR</button>
+			<button @click="print_QRs">Сохранить в файл</button>
+			<!-- <div id='qr_place'></div> -->
+			<div id='qr_for_print'>
+				<div id='QR_persons_list'>
+				
+					<div class='container'>
+						<div v-for='(page, i) in aQR_L'
+							:key="i"
+							class='page'
+						>
+							<h3>Старшая группа [{{i+1}}]</h3>
+							<div class='page_wrapper'>
+								<div v-for="person in page"
+									:key="person.id"
+									class='item'>
+									<div class='content'>
+										<div class='side'>
+											<div class='name'>{{person.name}}</div>
+											<div class='dk_code'>{{person.dk_code}}</div>
+										</div>
+										<div class='qr_place' :data-dk_code='person.dk_code'></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class='container'>
+						<div v-for='(page, i) in aQR_M'
+							:key="i"
+							class='page'
+						>
+							<h3>Средняя группа [{{i+1}}]</h3>
+							<div class='page_wrapper'>
+								<div v-for="person in page"
+									:key="person.id"
+									class='item'>
+									<div class='content'>
+										<div class='side'>
+											<div class='name'>{{person.name}}</div>
+											<div class='dk_code'>{{person.dk_code}}</div>
+										</div>
+										<div class='qr_place' :data-dk_code='person.dk_code'></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class='container'>
+						<div v-for='(page, i) in aQR_S'
+							:key="i"
+							class='page'
+						>
+							<h3>Младшая группа [{{i+1}}]</h3>
+							<div class='page_wrapper'>
+								<div v-for="person in page"
+									:key="person.id"
+									class='item'>
+									<div class='content'>
+										<div class='side'>
+											<div class='name'>{{person.name}}</div>
+											<div class='dk_code'>{{person.dk_code}}</div>
+										</div>
+										<div class='qr_place' :data-dk_code='person.dk_code'></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<!-- <h3>Средняя группа</h3> -->
+					<!-- <div class='container'> -->
+						<!-- <div v-for='person in aQR_M' -->
+							<!-- :key="person.id" -->
+							<!-- class='item' -->
+						<!-- > -->
+							<!-- <div class='content'> -->
+								<!-- <div class='side'> -->
+									<!-- <div class='name'>{{person.name}}</div> -->
+									<!-- <div class='dk_code'>{{person.dk_code}}</div> -->
+								<!-- </div> -->
+								<!-- <div class='qr_place' :data-dk_code='person.dk_code'></div> -->
+							<!-- </div> -->
+						<!-- </div> -->
+					<!-- </div> -->
+					
+					<!-- <h3>Младшая группа</h3> -->
+					<!-- <div class='container'> -->
+						<!-- <div v-for='person in aQR_S' -->
+							<!-- :key="person.id" -->
+							<!-- class='item' -->
+						<!-- > -->
+							<!-- <div class='content'> -->
+								<!-- <div class='side'> -->
+									<!-- <div class='name'>{{person.name}}</div> -->
+									<!-- <div class='dk_code'>{{person.dk_code}}</div> -->
+								<!-- </div> -->
+								<!-- <div class='qr_place' :data-dk_code='person.dk_code'></div> -->
+							<!-- </div> -->
+						<!-- </div> -->
+					<!-- </div> -->
+					
+				</div>
+			</div>
+		</div>
+	</details>
+	
+	<hr>
+	<br>
+<details>
+<summary>Данные</summary>
 <pre>
-{{aRolesFull}}
+Управление коллективом:
+{{sNewStat2}}
+-------
+pers_editor
+{{pers_editor}}
+-------
+
+Выбранный спектакль:
 {{sSelectedPlay}}
+----
+aRolesFull:
+{{aRolesFull}}
+----
+aRoles:
 {{aRoles}}
 </pre>
+</details>
+
 </div>
